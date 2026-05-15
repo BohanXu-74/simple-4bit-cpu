@@ -1,24 +1,30 @@
-# Simple 4-Bit CPU (BX-4)
+# BX-4 — A 4-Bit CPU Series
 
 [![Demo Video](https://img.shields.io/badge/YouTube-Demo%20Video-red?logo=youtube)](https://www.youtube.com/watch?v=geT2ecY6J6I)
 [![Hackaday](https://img.shields.io/badge/Hackaday.io-Project%20Page-brightgreen)](https://hackaday.io/project/204999-student-made-ttl-cpu)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-![CPU Photo](images/cpu.png)
+![BX-4.1 Photo](images/cpu.png)
 
-A real, physical 4-bit CPU built from 74-series TTL logic chips, designed and assembled in 5th grade after reading *Code* by Charles Petzold. This is not a simulator or a paper design. It actually runs. Every instruction is traceable cycle by cycle through discrete logic gates wired on a real board.
+This repository is the home of the **BX-4**, a custom 4-bit CPU designed from scratch starting in 5th grade after reading *Code* by Charles Petzold. BX stands for Bohan Xu. The series currently has three versions: BX-4.1, BX-4.2, and BX-4.3. The first was physically built from 74-series TTL chips and actually runs. The later two are fully simulated in Digital by H. Neemann but have not been built yet.
 
-This repo contains three generations of the design (V1, V2, V3), the Digital simulation files, the Arduino-based ROM simulator code, assembly programs, a hand-written log book, and a custom assembler written by [Bolan Xu](https://github.com/bolanxu).
+This project is also the foundation for everything that came after it, including an 8-bit CPU and the [APEX-16](https://github.com/BohanXu-74/APEX-16), a 16-bit pipelined CPU currently in development.
+
+---
+
+## The Versions at a Glance
+
+| Version | Status | Key Improvement |
+|---|---|---|
+| BX-4.1 | Physically built and working | Original design |
+| BX-4.2 | Fully simulated, not built | Fewer cycles per instruction, techniques inspired by 8051 architecture |
+| BX-4.3 | Fully simulated, not built | Further refinement of BX-4.2, cleaner ROM format |
 
 ---
 
 ## Background
 
-After reading *Code* by Charles Petzold, I wanted to actually understand how a processor works from the ground up, not just read about it. So I built one. The result is what I call BX-4, a simple 4-bit CPU implemented entirely in 74-series TTL logic.
-
-The whole thing is closer to a microcontroller than a true microprocessor. There is no external RAM access. The program lives in ROM simulated by an Arduino, and the CPU executes it instruction by instruction. It is slow, it has timing quirks, and getting it to actually run reliably was a real fight, but it works.
-
-This project directly led to my 8-bit CPU (in a separate repo), and is part of a longer journey that now includes the [APEX-16](#what-comes-next), a 16-bit pipelined CPU with an FPU that I am actively building.
+I wanted to understand how a processor actually works at the lowest level, not just conceptually but gate by gate. So after reading *Code* by Charles Petzold, I designed and built one. The BX-4 is implemented entirely in 74-series TTL logic chips and is closer to a microcontroller than a true microprocessor. There is no external RAM access. The program lives in ROM simulated by an Arduino. It is slow and it needed a lot of fighting to get running reliably, but it works and it executes real instructions on real hardware.
 
 ---
 
@@ -35,15 +41,13 @@ This project directly led to my 8-bit CPU (in a separate repo), and is part of a
 | Logic family | 74-series TTL |
 | Simulation tool | Digital by H. Neemann |
 
-The 12-bit program counter gives the CPU 4096 addressable locations in program memory, which is a lot more than this architecture needs but gives room to work with.
-
-The four registers (R1 through R4) are all general purpose. There is no dedicated accumulator or stack pointer at this level. You move data between registers, load immediate values, do arithmetic, compare, and jump. That is the whole model.
+The 12-bit program counter gives the CPU 4096 addressable locations in program memory. All four registers are general purpose with no dedicated accumulator or stack pointer at this level.
 
 ---
 
 ## Instruction Set
 
-The CPU supports 15 instructions total. The core ones are:
+The BX-4 supports 15 instructions. The core ones are:
 
 | Instruction | Description |
 |---|---|
@@ -54,30 +58,28 @@ The CPU supports 15 instructions total. The core ones are:
 | `JMP addr` | Unconditional jump to a 12-bit address |
 | `COMPLEMENT Rn` | Bitwise invert a register (NOT operation) |
 
-The ALU itself only does addition and complement natively. Subtraction can be done through complement and add, which is the standard two's complement method that real processors use too.
+The ALU handles addition and complement natively. Subtraction works through complement and add, which is the standard two's complement method used in real processor designs too.
 
 ---
 
 ## How the ROM Simulator Works
 
-Instead of a physical ROM chip, the program memory is simulated by an Arduino. On each clock pulse, the Arduino outputs the current instruction to the CPU's data bus. It also simulates the program counter externally, tracking which instruction comes next.
+Instead of a physical ROM chip, program memory is simulated by an Arduino. On each clock pulse, the Arduino outputs the current instruction to the CPU's data bus and tracks the program counter internally.
 
-When a `JMP` instruction is executed, the CPU latches the 12-bit jump target address directly onto 12 of the Arduino's I/O pins. The Arduino reads that address and jumps its internal program counter to match, so the next clock pulse outputs the instruction at the new location.
-
-You can also write programs directly into the Arduino's memory, making it easy to change what the CPU runs without rewiring anything.
+When a `JMP` instruction executes, the CPU latches the 12-bit jump target address directly onto 12 of the Arduino's I/O pins. The Arduino reads that address and moves its internal program counter to match, so the next clock pulse outputs the instruction at the new location. You can also write new programs directly into the Arduino's memory without rewiring anything.
 
 ---
 
-## Versions
+## Version Details
 
-### V1
-The first working design. Everything is functional but rough. Timing issues and power problems are present. Logic was designed and verified in Digital by H. Neemann before being built physically.
+### BX-4.1
+The original design and the only version that has been physically built. It works, though it needed deliberate timing delays added at various points to deal with propagation delay and racing signals. Logic was designed and verified in Digital before being wired up on real hardware.
 
-### V2
-A significant redesign informed by techniques from the 8051 architecture. Instructions execute in fewer clock cycles compared to V1. This version also includes a custom assembler written by [Bolan Xu](https://github.com/bolanxu) ([@TheBitDude](https://www.youtube.com/@TheBitDude)), along with hand-written assembly and machine code examples.
+### BX-4.2
+A full redesign informed by techniques from the 8051 architecture. Instructions execute in fewer clock cycles than BX-4.1. This version also includes a custom assembler written by [Bolan Xu](https://github.com/bolanxu) ([@TheBitDude](https://www.youtube.com/@TheBitDude)), along with hand-written assembly and machine code examples. Fully simulated in Digital, not yet built.
 
-### V3
-Further refinement of V2. The Digital simulation files are more complete, and machine code is stored in Digital's native ROM format for easier loading and testing.
+### BX-4.3
+A further refinement of BX-4.2 with cleaner Digital simulation files and machine code stored in Digital's native ROM format for easier loading and testing. Fully simulated in Digital, not yet built.
 
 ---
 
@@ -86,11 +88,11 @@ Further refinement of V2. The Digital simulation files are more complete, and ma
 ```
 simple-4bit-cpu/
 ├── src/
-│   ├── V1/          Arduino ROM simulator code and Digital simulation file
-│   ├── V2/          V2 Digital files, assembler (by Bolan Xu), assembly and machine code
-│   ├── V3/          V3 Digital files and machine code in Digital ROM format
+│   ├── V1/          BX-4.1: Arduino ROM simulator code and Digital simulation file
+│   ├── V2/          BX-4.2: Digital files, assembler (by Bolan Xu), assembly and machine code
+│   ├── V3/          BX-4.3: Digital files and machine code in Digital ROM format
 │   └── logbook/     Hand-written notes and log from the build process
-├── images/          Photos of the physical CPU
+├── images/          Photos of the BX-4.1 physical build
 └── README.md
 ```
 
@@ -99,16 +101,16 @@ simple-4bit-cpu/
 ## Simulating in Digital
 
 1. Download [Digital by H. Neemann](https://github.com/hneemann/Digital)
-2. Open any of the `.dig` files from the `src/V1`, `src/V2`, or `src/V3` folders
+2. Open any `.dig` file from `src/V1`, `src/V2`, or `src/V3`
 3. Run the simulation and step through clock cycles to trace execution
 
 ---
 
 ## Lessons Learned the Hard Way
 
-**Propagation delay** is a real problem at this scale. Every gate takes a small amount of time to switch, and when you chain a lot of them together those delays add up. Racing signals happen when two different signal paths that are supposed to arrive at the same time are slightly out of sync, which causes the wrong values to get latched. The fix was adding deliberate timing delays at the right spots in the circuit.
+**Propagation delay** is a real problem at this scale. Every gate takes a tiny amount of time to switch, and when you have long chains of logic those delays add up. Racing signals happen when two signal paths that should arrive at the same time are slightly out of sync, causing the wrong values to get latched. The fix was adding deliberate timing delays at the right spots in the circuit.
 
-**Power distribution** was the biggest physical headache. You can not just run a single wire from chip to chip to chip down the board. Every chip needs its own separate wire going directly back to the power supply in parallel. I found this out the hard way when I was measuring 5V right at the supply and only 4.3V at the chips on the far end of the board. That 0.7V drop was enough to make things act weird. The fix is simple once you know it: wire all the chips to power in parallel, not in a chain.
+**Power distribution** was the biggest physical headache on the BX-4.1 build. You cannot run a single wire from chip to chip down the board like a chain. Every chip needs its own separate wire going directly back to the power supply, all in parallel. I found this out when I was measuring 5V right at the supply and only 4.3V at the chips on the far end of the board. That 0.7V drop was enough to make things act unreliably. Wire power in parallel, not in series.
 
 ---
 
@@ -118,7 +120,7 @@ simple-4bit-cpu/
 |---|---|
 | [Digital by H. Neemann](https://github.com/hneemann/Digital) | Logic simulation |
 | Arduino | ROM and program counter simulation |
-| 74-series TTL ICs | Physical logic implementation |
+| 74-series TTL ICs | Physical logic implementation (BX-4.1) |
 | *Code* by Charles Petzold | The book that started all of this |
 
 ---
@@ -126,13 +128,13 @@ simple-4bit-cpu/
 ## Credits
 
 **Bohan Xu** — CPU design, schematic, physical build, simulation  
-**[Bolan Xu](https://github.com/bolanxu)** — Assembler for V2 ([@TheBitDude](https://www.youtube.com/@TheBitDude) on YouTube)
+**[Bolan Xu](https://github.com/bolanxu)** — Assembler for BX-4.2 ([@TheBitDude](https://www.youtube.com/@TheBitDude) on YouTube)
 
 ---
 
 ## What Comes Next
 
-This CPU was the first step. After finishing it, I built an 8-bit CPU (separate repository). I am currently working on the **[APEX-16](https://github.com/BohanXu-74/APEX-16)**, a custom 16-bit pipelined CPU with a floating point unit inspired by the Intel i386 through Pentium era of architecture. It has a 6-stage pipeline (Fetch, Decode, Register Read, ALU/FPU, Memory, Register Write), around 8 general purpose registers, and an ALU that handles AND, OR, NAND, NOT, XOR, shifts, and comparisons. The FPU handles floating point addition and subtraction. It is still in active development, but everything I ran into on this 4-bit CPU including the timing problems and the wiring mistakes fed directly into how I am approaching that design.
+The BX-4 was the starting point. After it came an 8-bit CPU (separate repository), and currently in active development is the **[APEX-16](https://github.com/BohanXu-74/APEX-16)**, a custom 16-bit pipelined CPU with a floating point unit inspired by Intel i386 through Pentium era architecture. It has a 6-stage pipeline (Fetch, Decode, Register Read, ALU/FPU, Memory, Register Write), around 8 general purpose registers, an ALU with AND, OR, NAND, NOT, XOR, shifts, and comparisons, and an FPU handling floating point addition and subtraction. Every problem that came up building the BX-4, from racing signals to power wiring, fed directly into how that design is being approached.
 
 ---
 
